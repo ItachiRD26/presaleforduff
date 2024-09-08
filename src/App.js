@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import Web3 from 'web3';
 
 function App() {
   const [walletAddress, setWalletAddress] = useState('');
@@ -16,12 +16,8 @@ function App() {
   const [connected, setConnected] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [loginFormVisible, setLoginFormVisible] = useState(false);
-  
 
-  const provider = new ethers.providers.JsonRpcProvider();
-  const signer = provider.getSigner();
-  const contract = new ethers.Contract(contractAddress, abi, signer);
-  
+  const web3 = new Web3(window.ethereum); // Define web3 aquí
 
   useEffect(() => {
     const getETHPrice = async () => {
@@ -36,8 +32,9 @@ function App() {
 
     const getNetwork = async () => {
       try {
-        const network = await provider.getNetwork();
-        setNetwork(`${network.name} (${network.chainId})`);
+        const networkId = await web3.eth.net.getId();
+        const networkType = await web3.eth.net.getNetworkType();
+        setNetwork(`${networkType} (${networkId})`);
       } catch (error) {
         console.error("Error fetching network info:", error);
       }
@@ -51,49 +48,12 @@ function App() {
     }
   }, [connected]);
 
-  const switchToArbitrum = async () => {
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0xA4B1' }] // Arbitrum One Chain ID (42161)
-      });
-    } catch (switchError) {
-      // Si la red Arbitrum no está en la billetera, la añadimos
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0xA4B1',
-              chainName: 'Arbitrum One',
-              rpcUrls: ['https://arb1.arbitrum.io/rpc'],
-              nativeCurrency: {
-                name: 'ETH',
-                symbol: 'ETH',
-                decimals: 18
-              },
-              blockExplorerUrls: ['https://arbiscan.io/']
-            }]
-          });
-        } catch (addError) {
-          console.error('No se pudo añadir la red Arbitrum', addError);
-        }
-      }
-    }
-  };
 
   const handleConnectWallet = async () => {
     try {
-      await provider.send('eth_requestAccounts', []);
-      const accounts = await provider.listAccounts();
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       setWalletAddress(accounts[0]);
       setConnected(true);
-      
-      // Verifica si el usuario está en la red Arbitrum
-      const chainId = await provider.getNetwork().then(network => network.chainId);
-      if (chainId !== 42161) { // 42161 es el Chain ID de Arbitrum One
-        await switchToArbitrum(); // Cambia a la red Arbitrum si es necesario
-      }
     } catch (error) {
       console.error("Error connecting to wallet:", error);
     }
@@ -108,32 +68,13 @@ function App() {
       }
     });
   };
-
   const handleEthAmountChange = (e) => {
     const inputValue = e.target.value;
     setInputValue(inputValue);
-  
     const ethAmount = parseFloat(inputValue);
-    if (isNaN(ethAmount) || ethAmount <= 0 || ethAmount > 0.54) {
-      setEthAmount(0);
-      setDuffAmount(0);
-      return;
-    }
-  
     setEthAmount(ethAmount);
-    
-    // Convertir ETH a wei
-    let weiAmount;
-    if (ethAmount >= 0.01) {
-      weiAmount = ethers.utils.parseEther(ethAmount.toFixed(4));
-    } else if (ethAmount >= 0.001) {
-      weiAmount = ethers.utils.parseEther(ethAmount.toFixed(5));
-    } else {
-      weiAmount = ethers.utils.parseEther(ethAmount.toFixed(6));
-    }
-    
-    const duffPricePerEth = presalePrice / ethPrice; // Calcular el precio de DUFF por ETH
-    const duffAmount = ethAmount / duffPricePerEth; // Calcular la cantidad de DUFF
+    const duffPricePerEth = presalePrice / ethPrice; // Calculate DUFF price per ETH
+    const duffAmount = ethAmount / duffPricePerEth; // Calculate DUFF amount based on input ETH amount
     setDuffAmount(duffAmount.toFixed(2));
   };
 
@@ -144,35 +85,41 @@ function App() {
     }
   
     const ethAmount = parseFloat(inputValue);
-    if (ethAmount <= 0 || ethAmount > 0.54) {
-      alert('Por favor, ingresa una cantidad de ETH válida (entre 0.004 y 0.54)');
+    if (ethAmount <= 0) {
+      alert('Por favor, ingresa una cantidad de ETH válida');
       return;
     }
   
-    // Convertir ETH a wei
-    let weiAmount;
-    if (ethAmount >= 0.01) {
-      weiAmount = ethers.utils.parseEther(ethAmount.toFixed(4));
-    } else if (ethAmount >= 0.001) {
-      weiAmount = ethers.utils.parseEther(ethAmount.toFixed(5));
-    } else {
-      weiAmount = ethers.utils.parseEther(ethAmount.toFixed(6));
-    }
-  
-    const tx = {
-      to: '0xf9bce13e2e56cc5b11dbb4e2a34d93e0f97aa2aa', // Dirección del contrato de DUFF
-      value: weiAmount,
-    };
+    const duffAmount = (ethAmount * ethPrice) / presalePrice;
+    const weiAmount = web3.utils.toWei(ethAmount.toString(), 'ether');
   
     try {
-      const txResponse = await signer.sendTransaction(tx);
-      await txResponse.wait(); // Espera a que la transacción sea confirmada
+      const tx = {
+        from: walletAddress,
+        to: '0xf9bce13e2e56cc5b11dbb4e2a34d93e0f97aa2aa', // Dirección del contrato de DUFF
+        value: weiAmount,
+        gas: '500000',
+        gasPrice: web3.utils.toWei('0.001', 'gwei'),
+      };
+  
+      const txHash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [tx],
+      });
+
+      // Esperar a que la transacción se confirme
+      await web3.eth.getTransactionReceipt(txHash);
+  
+      // Actualizar el estado de la aplicación
+      setRaisedAmount(raisedAmount + ethAmount * ethPrice);
+      setRemainingTokens(remainingTokens - duffAmount);
+      setProgress((raisedAmount / goal) * 100);
+      alert(`¡Has comprado ${duffAmount} DUFF con éxito!`);
     } catch (error) {
       console.error('Error al realizar la compra:', error);
       alert('Error al realizar la compra. Por favor, intenta nuevamente.');
     }
   };
-
 
   return (
     // ... (el código del return sigue siendo el mismo)
@@ -230,7 +177,6 @@ function App() {
   pattern="[0-9]+(\.[0-9]{1,4})?"
   inputMode="decimal"
 />
-
     <span id="eth-value-usd" style={{ color: 'gray', fontSize: '0.9em', marginLeft: '5px' }}>${(ethAmount * ethPrice).toFixed(2)} USD</span>
   </div>
   <div className="arrow">→</div>
