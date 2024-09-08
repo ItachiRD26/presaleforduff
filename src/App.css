@@ -1,38 +1,275 @@
-.App {
+/* Global Styles */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: monospace;
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(45deg, #141e30, #243b55);
+  background-size: 400% 400%;
+  animation: gradient 10s ease infinite;
+}
+
+/* Animación del fondo */
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Container Styles */
+
+.container {
+  width: 90%;
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.presale-card {
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.header {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  margin-bottom: 20px;
+}
+
+.logo {
+  width: 60px;
+  margin-right: 15px;
+}
+
+.price, .network, .dates, .tokens-remaining, .raised-goal {
+  margin: 20px 0;
+}
+
+.network {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.network-logo {
+  width: 40px;
+  margin-right: 10px;
+}
+
+.dates {
+  display: flex;
+  justify-content: space-between;
+}
+
+.date p {
+  margin: 5px 0;
+}
+
+.progress-bar {
+  background-color: #000000;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 25px;
+}
+
+.progress {
+  background-color: #ffffff;
+  height: 100%;
+  width: 0;
+  text-align: center;
+  line-height: 25px;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.tokens-remaining {
+  color: #000000;
+  font-weight: bold;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.raised-goal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
 }
+
+.conversion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0;
+}
+
+.input-group {
+  flex: 1;
+  margin: 0 15px;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+.arrow {
+  font-size: 24px;
+  color: #333;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #ff4c4c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+button:hover {
+  background-color: #e04444;
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+#connect-wallet-btn, #disconnect-wallet-btn {
+  width: 100%;
+  font-family: monospace;
+}
+
+#buy-duff-btn {
+  margin-top: 20px;
+  font-family: monospace;
+}
+
+#white-paper-btn {
+  background-color: #007bff;
+  margin-top: 12px;
+  font-family: monospace;
+}
+
+#white-paper-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Wallet Info Styles */
+
+#wallet-info {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+#wallet-address,
+#network-info {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+#address-display,
+#network-display {
+  font-weight: bold;
+  color: #007bff;
+}
+
+#wallet-info .icon {
+  margin-right: 10px;
+}
+
+.wallet-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-image: url('./img/wallet-icon.png'); /* Añade tu icono de billetera aquí */
+  background-size: cover;
+}
+
+.network-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-image: url('./img/arbitrum-arb-logo.png'); /* Añade tu icono de red aquí */
+  background-size: cover;
+}
+
+/* Button Styles */
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #ff4c4c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+button:hover {
+  background-color: #e04444;
+}
+
+#connect-wallet-btn, #disconnect-wallet-btn {
+  width: 100%;
+  font-family: monospace;
+}
+
+#buy-duff-btn {
+  margin-top: 20px;
+  font-family: monospace;
+}
+
+#white-paper-btn {
+  background-color: #007bff;
+  margin-top: 12px;
+  font-family: monospace;
+}
+
+#white-paper-btn:hover {
+  background-color: #0056b3;
+}
+
